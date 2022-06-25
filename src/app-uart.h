@@ -19,43 +19,42 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <avr/interrupt.h>
-#include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
+#pragma once
 
-#include "app-i2c.h"
-#include "app-io.h"
+#include <stdint.h>
+
+
+/**
+ * Initialises UART driver.
+ */
+void app_uart_module_init(void);
+
+
+/**
+ * Pushes a byte into driver's transmit FIFO.
+ *
+ * @param value     Byte value to push into fifo.
+ */
+inline static void app_uart_push(uint8_t value);
+
+
+#ifndef _DOXYGEN
+
+// ******** PRIVATE ********
+
+#include <avr/io.h>
+
 #include "app-led.h"
-#include "app-uart.h"
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
+extern volatile uint8_t priv_app_uart_queue[256];
+extern volatile uint8_t priv_app_uart_head;
 
-        // TODO: sleep when not handling interrupts
-    }
+
+inline static void app_uart_push(uint8_t value) {
+    priv_app_uart_queue[priv_app_uart_head++] = value;
+    UCSR0B = (1 << UDRIE0) | (1 << TXEN0);
+    app_led_flash();
 }
 
-
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
-
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
-
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
-
-    // enable interrupts
-    sei();
-
-    // enter main loop (never returns)
-    main_loop();
-}
+#endif // _DOXYGEN

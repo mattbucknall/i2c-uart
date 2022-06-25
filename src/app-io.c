@@ -19,43 +19,17 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <avr/interrupt.h>
-#include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
+#include <avr/io.h>
 
-#include "app-i2c.h"
 #include "app-io.h"
-#include "app-led.h"
-#include "app-uart.h"
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
+void app_io_module_init(void) {
+    // enable pull-ups on unused pins
+    PORTB = APP_IO_B_UNUSED;
+    PORTC = APP_IO_C_UNUSED;
+    PORTD = APP_IO_D_UNUSED;
 
-        // TODO: sleep when not handling interrupts
-    }
-}
-
-
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
-
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
-
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
-
-    // enable interrupts
-    sei();
-
-    // enter main loop (never returns)
-    main_loop();
+    // enable LED output
+    DDRB = APP_IO_B_LED;
 }

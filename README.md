@@ -16,18 +16,31 @@ The Nano is connected to the target via the following pins:
 
 ## UART Interface
 
-This firmware operates the Nano's UART at 76800 baud with an 8-bit word width, no parity and 1 stop bit.
+This firmware operates the Nano's UART at 76800 baud with an 8-bit word width, no parity and 1 stop bit. The baud rate
+can be changed by modifying `APP_CONFIG_BAUD_RATE` in app-config.h 
 
 ## I2C Interface
 
-The Nano's I2C interface operates in target mode<sup>1</sup> up to 400kHz and responds to the 7-bit address `1100011` (this can be
-changed by modifying APP_DEVICE_ADDRESS in main.c). All bytes received on the I2C interface, after the device address,
-are pushed into a 512 byte FIFO and then transmitted by the Nano's UART.
+The Nano's I2C interface operates in target mode<sup>1</sup> up to 400kHz and responds to the 7-bit address `1100011`
+(this can be changed by modifying `APP_CONFIG_DEVICE_ADDRESS` in app-config.h). All bytes received on the I2C interface,
+after the device address, are pushed into a 256 byte FIFO and then transmitted by the Nano's UART.
 
 ## Limitations
 
-- No flow control implemented - If the FIFO overflows, then data will be dropped.
+- No flow control implemented - If the FIFO overflows then data will be dropped.
 - Communication is currently only one-way (I2C to UART).
+
+## Compiling/Programming
+The build scripts for this project are set up to compile the source code using avr-gcc + AVR Libc (only tested on Linux)
+and to program the Nano using an AVR ISP MkII programming adapter via avrdude. The toolchain is assumed to be installed
+under `/usr` (e.g. `/usr/bin/avr-gcc`). The following custom build targets are defined:
+
+| Target          |Description|
+|-----------------|-----------|
+| `program`       |Programs the Nano's flash memory.|
+| `program_fuses` |Sets the Nano's fuse bits.|
+|`reset`|Resets the Nano.|
+|`erase`|Erases the Nano's flash memory.|
 
 ## License
 

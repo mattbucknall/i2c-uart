@@ -19,43 +19,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <avr/interrupt.h>
-#include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
+#pragma once
 
-#include "app-i2c.h"
+
+/**
+ * Initialises LED driver.
+ */
+void app_led_module_init(void);
+
+
+/**
+ * Momentarily illuminates LED.
+ */
+inline static void app_led_flash();
+
+
+#ifndef _DOXYGEN
+
+// ******** PRIVATE ********
+
+#include <avr/io.h>
+
+#include <stdint.h>
+
 #include "app-io.h"
-#include "app-led.h"
-#include "app-uart.h"
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
+extern volatile uint8_t priv_app_led_counter;
 
-        // TODO: sleep when not handling interrupts
-    }
+
+inline static void app_led_flash() {
+    // set led counter (decremented in TIMER0 overflow ISR)
+    priv_app_led_counter = 4;
+
+    // turn LED on
+    PORTB = APP_IO_B_LED;
 }
 
-
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
-
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
-
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
-
-    // enable interrupts
-    sei();
-
-    // enter main loop (never returns)
-    main_loop();
-}
+#endif // _DOXYGEN

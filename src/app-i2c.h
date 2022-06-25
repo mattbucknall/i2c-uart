@@ -19,43 +19,10 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <avr/interrupt.h>
-#include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
-
-#include "app-i2c.h"
-#include "app-io.h"
-#include "app-led.h"
-#include "app-uart.h"
+#pragma once
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
-
-        // TODO: sleep when not handling interrupts
-    }
-}
-
-
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
-
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
-
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
-
-    // enable interrupts
-    sei();
-
-    // enter main loop (never returns)
-    main_loop();
-}
+/**
+ * Initialises I2C driver.
+ */
+void app_i2c_module_init(void);

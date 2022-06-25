@@ -21,41 +21,29 @@
 
 #include <avr/interrupt.h>
 #include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
 
-#include "app-i2c.h"
-#include "app-io.h"
 #include "app-led.h"
-#include "app-uart.h"
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
+volatile uint8_t priv_app_led_counter;
 
-        // TODO: sleep when not handling interrupts
+
+ISR(TIMER0_OVF_vect) {
+    // decrement led counter until it reaches zero, then turn LED off
+    if ( priv_app_led_counter > 0 ) {
+        priv_app_led_counter--;
+    } else {
+        PORTB = 0;
     }
 }
 
 
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
+void app_led_module_init(void) {
+    // enable TIMER0 clock
+    power_timer0_enable();
 
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
-
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
-
-    // enable interrupts
-    sei();
-
-    // enter main loop (never returns)
-    main_loop();
+    // initialise timer for ~61Hz overflow interrupt
+    TIFR0 = (1 << TOV0);    // clear overflow interrupt flag
+    TIMSK0 = (1 << TOIE0);  // enable overflow interrupt
+    TCCR0B = (1 << CS02) | (1 << CS00); // start timer with /1024 prescaler
 }

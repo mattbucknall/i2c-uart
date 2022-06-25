@@ -19,43 +19,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <avr/interrupt.h>
-#include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
-
-#include "app-i2c.h"
-#include "app-io.h"
-#include "app-led.h"
-#include "app-uart.h"
+#pragma once
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
+/// UART baud rate
+#define APP_CONFIG_BAUD_RATE            76800
 
-        // TODO: sleep when not handling interrupts
-    }
-}
-
-
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
-
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
-
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
-
-    // enable interrupts
-    sei();
-
-    // enter main loop (never returns)
-    main_loop();
-}
+/// I2C device address (7-bit address is in bits 7-1, leave bit 0 unset)
+#define APP_CONFIG_DEVICE_ADDRESS       0xC6

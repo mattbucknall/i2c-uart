@@ -19,43 +19,32 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <avr/interrupt.h>
-#include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
-
-#include "app-i2c.h"
-#include "app-io.h"
-#include "app-led.h"
-#include "app-uart.h"
+#pragma once
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
+// Port B pin assignments
+#define APP_IO_B_LED                (1 << 5)
+#define APP_IO_B_XTAL1              (1 << 6)
+#define APP_IO_B_XTAL2              (1 << 7)
 
-        // TODO: sleep when not handling interrupts
-    }
-}
+#define APP_IO_B_UNUSED             ((1 << 4) | (1 << 3) | (1 << 2) | (1 << 1) | (1 << 0))
 
 
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
+// Port C pin assignments
+#define APP_IO_C_SDA                (1 << 4)
+#define APP_IO_C_SCL                (1 << 5)
 
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
+#define APP_IO_C_UNUSED             ((1 << 6) | (1 << 3) | (1 << 2) | (1 << 1) | (1 << 0))
 
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
 
-    // enable interrupts
-    sei();
+// Port D Pin Assignments
+#define APP_IO_D_RXD                (1 << 0)
+#define APP_IO_D_TXD                (1 << 1)
 
-    // enter main loop (never returns)
-    main_loop();
-}
+#define APP_IO_D_UNUSED             ((1 << 7) | (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3) | (1 << 2))
+
+
+/**
+* Initialises GPIO pins.
+*/
+void app_io_module_init(void);

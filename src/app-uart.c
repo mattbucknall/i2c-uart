@@ -20,42 +20,35 @@
  */
 
 #include <avr/interrupt.h>
+#include <avr/io.h>
 #include <avr/power.h>
-#include <avr/wdt.h>
-#include <stdnoreturn.h>
 
-#include "app-i2c.h"
-#include "app-io.h"
-#include "app-led.h"
+#include "app-config.h"
 #include "app-uart.h"
 
 
-static void noreturn main_loop(void) {
-    for (;;) {
-        // reset watchdog timer
-        wdt_reset();
+volatile uint8_t priv_app_uart_queue[256];
+volatile uint8_t priv_app_uart_head;
 
-        // TODO: sleep when not handling interrupts
+static volatile uint8_t m_tail;
+
+
+ISR(USART_UDRE_vect) {
+    UDR0 = priv_app_uart_queue[m_tail++];
+
+    if ( m_tail == priv_app_uart_head ) {
+        UCSR0B = (1 << TXEN0);
     }
 }
 
 
-int main(void) {
-    // enable watchdog timer
-    wdt_enable(WDTO_250MS);
+void app_uart_module_init(void) {
+    // enable USART0 clock
+    power_usart0_enable();
 
-    // disable all peripherals (drivers will enable the peripherals they use)
-    power_all_disable();
-
-    // initialise drivers
-    app_io_module_init();
-    app_led_module_init();
-    app_uart_module_init();
-    app_i2c_module_init();
-
-    // enable interrupts
-    sei();
-
-    // enter main loop (never returns)
-    main_loop();
+    // configure USART0
+    UBRR0 = (TARGET_XTAL_FREQ / (8 * APP_CONFIG_BAUD_RATE)) - 1;
+    UCSR0A = (1 << U2X0); // double speed
+    UCSR0C = (1 << UCSZ01) | (1 << UCSZ00); // 8-bit, no parity, 1 stop bit
+    UCSR0B = (1 << TXEN0); // transmitter enabled
 }
