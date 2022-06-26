@@ -32,7 +32,12 @@ ISR(TWI_vect) {
     uint8_t status = TWSR & 0xF8;
 
     // decode status and perform any actions necessary to satisfy TWI operation
-    switch(status) {
+    switch (status) {
+    case 0x00:
+        // a bus error occurred, TWSTO must be set to recover from it
+        TWCR = (1 << TWINT) | (1 << TWEA) | (1 << TWSTO) | (1 << TWEN) | (1 << TWIE);
+        return;
+
     case 0x80:
     case 0x88:
     case 0x90:
